@@ -121,6 +121,7 @@ class StockExpress(STOCK_BASE):
 class StockFinacial(STOCK_BASE):
     __tablename__ = 'stock_finacial'
     ts_code = Column(VARCHAR(64), primary_key=True)
+    name = Column(VARCHAR(64))
     ann_date = Column(DATE, index=True)  # 公告日期
     end_date = Column(DATE, primary_key=True)  # 报告期
     eps = Column(FLOAT(), default=0.0)  # 基本每股收益
