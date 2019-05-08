@@ -2,9 +2,7 @@
 
 import time
 import traceback
-import json
-import re
-import os
+import math
 import multiprocessing
 import argparse
 from tushare_api.tushare_process import ts_pro
@@ -82,7 +80,7 @@ class StockBasicJob:
                     for field in row1.keys():
                         if hasattr(dt_stock_finacial, field):
                             value = row1[field]
-                            if value == 'nan':
+                            if isinstance(value, float) and math.isnan(value):
                                 value = None
                             setattr(dt_stock_finacial, field, value)
                     sess.merge(dt_stock_finacial)
