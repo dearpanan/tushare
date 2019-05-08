@@ -5,7 +5,6 @@ import traceback
 import json
 import re
 import os
-import brotli
 import multiprocessing
 import argparse
 from tushare_api.tushare_process import ts_pro
@@ -246,7 +245,7 @@ class StockBasicJob:
                 break
             except:
                 queue.put((ts_code + ":" + name, -1))
-                print(traceback.format_exc())
+                self.mylogger.error(traceback.format_exc())
                 time.sleep(20)
 
 
