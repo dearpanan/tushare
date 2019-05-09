@@ -114,6 +114,6 @@ if __name__ == '__main__':
     parser = arg_parser()
     args = parser.parse_args()
     logger = ProjectUtil.get_project_logger(StockBasicJob.name)
-    crawler = StockBasicJob(logger, args.process, args.market, args.type)
+    crawler = StockBasicJob(logger, args.process, args.exchange, args.type)
     crawler.start()
 
