@@ -15,12 +15,13 @@ class StockBasicJob:
     name = 'stock_basic_job'
     stock_db = 'stock'
 
-    def __init__(self, mylogger, process_num, job_type):
+    def __init__(self, mylogger, process_num, exchange, job_type):
         self.process_num = process_num
         self.job_type = job_type
         self.session = None
         self.engine = None
         self.mylogger = None
+        self.exchange = exchange
 
         if mylogger:
             self.mylogger = mylogger
@@ -38,7 +39,7 @@ class StockBasicJob:
 
             num_compress_process = 0
             queue = multiprocessing.Queue()
-            data = ts_pro.stock_basic(exchange_id='', list_status='L')
+            data = ts_pro.stock_basic(exchange_id='', list_status='L', exchange=self.exchange)
             for idx, row in data.iterrows():
                     if self.process_num > 1:
                         try:
@@ -100,6 +101,8 @@ def arg_parser():
         parser = argparse.ArgumentParser('./update_basic.py -h')
         parser.add_argument('-p', '--process', action='store', dest='process', type=int,
                             default=1, help='num of multi process')
+        parser.add_argument('-e', '--exchange', action='store', dest='exchange', type=str,
+                            default='SSE', help='market: SSE/SZSE')
         parser.add_argument('-t', '--type', action='store', dest='type', type=str,
                             default='good', help='task type')
         return parser
@@ -111,6 +114,6 @@ if __name__ == '__main__':
     parser = arg_parser()
     args = parser.parse_args()
     logger = ProjectUtil.get_project_logger(StockBasicJob.name)
-    crawler = StockBasicJob(logger, args.process, args.type)
+    crawler = StockBasicJob(logger, args.process, args.market, args.type)
     crawler.start()
 
