@@ -128,7 +128,6 @@ def arg_parser():
                             default='', help='start date')
         parser.add_argument('--end_d', action='store', dest='end_d', type=str,
                             default='', help='end date')
-        parser.add_argument()
         return parser
     except:
         print(traceback.format_exc())
