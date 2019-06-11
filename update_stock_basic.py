@@ -117,7 +117,7 @@ class StockBasicJob:
 
 def arg_parser():
     try:
-        parser = argparse.ArgumentParser('./update_basic.py -h')
+        parser = argparse.ArgumentParser('./update_stock_basic.py -h')
         parser.add_argument('-p', '--process', action='store', dest='process', type=int,
                             default=1, help='num of multi process')
         parser.add_argument('-e', '--exchange', action='store', dest='exchange', type=str,
@@ -128,7 +128,7 @@ def arg_parser():
                             default='', help='start date')
         parser.add_argument('--end_d', action='store', dest='end_d', type=str,
                             default='', help='end date')
-        parse.add_argument()
+        parser.add_argument()
         return parser
     except:
         print(traceback.format_exc())
