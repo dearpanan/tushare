@@ -6,7 +6,7 @@ import math
 import multiprocessing
 import argparse
 from tushare_api.tushare_process import ts_pro
-from db.mysql_tables import StockFinacial, STOCK_BASE
+from db.mysql_tables import StockFinacial, StockDaily, STOCK_BASE
 from comm.utils import ProjectUtil
 from db.mysql_alchemy import MySession
 
@@ -15,9 +15,11 @@ class StockBasicJob:
     name = 'stock_basic_job'
     stock_db = 'stock'
 
-    def __init__(self, mylogger, process_num, exchange, job_type):
+    def __init__(self, mylogger, process_num, exchange, job_type, start_date, end_date):
         self.process_num = process_num
         self.job_type = job_type
+        self.start_date = start_date
+        self.end_date = end_date
         self.session = None
         self.engine = None
         self.mylogger = None
@@ -86,6 +88,8 @@ class StockBasicJob:
                             setattr(dt_stock_finacial, field, value)
                     sess.merge(dt_stock_finacial)
                     sess.commit()
+                    # daily data
+                    self.get_stock_daily_data(sess, dt_stock_finacial.ts_code)
                 if queue:
                     queue.put((ts_code + ":" + name, 0))
                 break
@@ -95,6 +99,21 @@ class StockBasicJob:
                 self.mylogger.error(traceback.format_exc())
                 time.sleep(20)
 
+    def get_stock_daily_data(self, sess, ts_code):
+        try:
+            data = ts_pro.daily(ts_code=ts_code, start_date=self.start_date, end_date=self.end_date)
+            dt_daily = StockDaily()
+            for idx, row in data.iterrows():
+                for field in row.keys():
+                    if hasattr(dt_daily, field):
+                        value = row[field]
+                        if isinstance(value, float) and math.isnan(value):
+                            value = None
+                        setattr(dt_daily, field, value)
+                sess.merge(dt_daily)
+                sess.commit()
+        except:
+            self.mylogger.error(traceback.format_exc())
 
 def arg_parser():
     try:
@@ -105,6 +124,11 @@ def arg_parser():
                             default='SSE', help='market: SSE/SZSE')
         parser.add_argument('-t', '--type', action='store', dest='type', type=str,
                             default='good', help='task type')
+        parser.add_argument('--start_d', action='store', dest='start_d', type=str,
+                            default='', help='start date')
+        parser.add_argument('--end_d', action='store', dest='end_d', type=str,
+                            default='', help='end date')
+        parse.add_argument()
         return parser
     except:
         print(traceback.format_exc())
@@ -114,6 +138,6 @@ if __name__ == '__main__':
     parser = arg_parser()
     args = parser.parse_args()
     logger = ProjectUtil.get_project_logger(StockBasicJob.name)
-    crawler = StockBasicJob(logger, args.process, args.exchange, args.type)
+    crawler = StockBasicJob(logger, args.process, args.exchange, args.type, args.start_d, args.end_d)
     crawler.start()
 

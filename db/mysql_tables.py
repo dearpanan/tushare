@@ -10,7 +10,7 @@ STOCK_BASE = declarative_base(name='stock_base')
 
 class StockDaily(STOCK_BASE):
     __tablename__ = 'stock_daily'
-    code = Column(VARCHAR(64), primary_key=True)  # 股票代码
+    ts_code = Column(VARCHAR(64), primary_key=True)  # 股票代码
     trade_date = Column(DATE, primary_key=True)  # 交易日期
     open = Column(FLOAT)  # 开盘价
     high = Column(FLOAT)  # 最高价
