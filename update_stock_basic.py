@@ -43,26 +43,26 @@ class StockBasicJob:
             queue = multiprocessing.Queue()
             data = ts_pro.stock_basic(exchange_id='', list_status='L', exchange=self.exchange)
             for idx, row in data.iterrows():
-                    if self.process_num > 1:
-                        try:
-                            job = multiprocessing.Process(target=self.get_stock_basic_info,
-                                                          args=(row['ts_code'],
-                                                                row['name'],
-                                                                queue))
-                            job.start()
-                            num_compress_process += 1
-                            while num_compress_process == self.process_num:
-                                (stock_name, status) = queue.get()
-                                num_compress_process -= 1
-                                if status < 0:
-                                    self.mylogger.error("==exceptions occurs "
-                                                        "when get info of stock:{} ".format(stock_name))
-                                elif status == 0:
-                                    self.mylogger.info("finish stock:{} ".format(stock_name))
-                        except:
-                            self.mylogger.error(traceback.format_exc())
-                    else:
-                        self.get_stock_basic_info(row['ts_code'], row['name'])
+                if self.process_num > 1:
+                    try:
+                        job = multiprocessing.Process(target=self.get_stock_basic_info,
+                                                      args=(row['ts_code'],
+                                                            row['name'],
+                                                            queue))
+                        job.start()
+                        num_compress_process += 1
+                        while num_compress_process == self.process_num:
+                            (stock_name, status) = queue.get()
+                            num_compress_process -= 1
+                            if status < 0:
+                                self.mylogger.error("==exceptions occurs "
+                                                    "when get info of stock:{} ".format(stock_name))
+                            elif status == 0:
+                                self.mylogger.info("finish stock:{} ".format(stock_name))
+                    except:
+                        self.mylogger.error(traceback.format_exc())
+                else:
+                    self.get_stock_basic_info(row['ts_code'], row['name'])
 
 
         except:
@@ -100,20 +100,25 @@ class StockBasicJob:
                 time.sleep(20)
 
     def get_stock_daily_data(self, sess, ts_code):
-        try:
-            data = ts_pro.daily(ts_code=ts_code, start_date=self.start_date, end_date=self.end_date)
-            dt_daily = StockDaily()
-            for idx, row in data.iterrows():
-                for field in row.keys():
-                    if hasattr(dt_daily, field):
-                        value = row[field]
-                        if isinstance(value, float) and math.isnan(value):
-                            value = None
-                        setattr(dt_daily, field, value)
-                sess.merge(dt_daily)
-                sess.commit()
-        except:
-            self.mylogger.error(traceback.format_exc())
+        retry = 5
+        while retry > 0:
+            try:
+                data = ts_pro.daily(ts_code=ts_code, start_date=self.start_date, end_date=self.end_date)
+                dt_daily = StockDaily()
+                for idx, row in data.iterrows():
+                    for field in row.keys():
+                        if hasattr(dt_daily, field):
+                            value = row[field]
+                            if isinstance(value, float) and math.isnan(value):
+                                value = None
+                            setattr(dt_daily, field, value)
+                    sess.merge(dt_daily)
+                    sess.commit()
+            except:
+                self.mylogger.error(traceback.format_exc())
+                time.sleep(20)
+                retry = retry - 1
+
 
 def arg_parser():
     try:
