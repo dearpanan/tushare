@@ -129,9 +129,9 @@ def arg_parser():
                             default='SSE', help='market: SSE/SZSE')
         parser.add_argument('-t', '--type', action='store', dest='type', type=str,
                             default='good', help='task type')
-        parser.add_argument('--start_d', action='store', dest='start_d', type=str,
+        parser.add_argument('--sd', action='store', dest='start_d', type=str,
                             default='', help='start date')
-        parser.add_argument('--end_d', action='store', dest='end_d', type=str,
+        parser.add_argument('--ed', action='store', dest='end_d', type=str,
                             default='', help='end date')
         return parser
     except:
