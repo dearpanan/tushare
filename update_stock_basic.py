@@ -88,8 +88,8 @@ class StockBasicJob:
                             setattr(dt_stock_finacial, field, value)
                     sess.merge(dt_stock_finacial)
                     sess.commit()
-                    # daily data
-                    self.get_stock_daily_data(sess, dt_stock_finacial.ts_code)
+                # daily data
+                self.get_stock_daily_data(sess, dt_stock_finacial.ts_code)
                 if queue:
                     queue.put((ts_code + ":" + name, 0))
                 break
@@ -123,8 +123,8 @@ class StockBasicJob:
                 time.sleep(20)
                 retry = retry - 1
                 self.mylogger.info("fail to get stock-{} daily data from {} to {} ".format(ts_code,
-                                                                                   self.start_date,
-                                                                                   self.end_date))
+                                                                                           self.start_date,
+                                                                                           self.end_date))
 
 
 def arg_parser():
