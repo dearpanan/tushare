@@ -114,10 +114,17 @@ class StockBasicJob:
                             setattr(dt_daily, field, value)
                     sess.merge(dt_daily)
                     sess.commit()
+                self.mylogger.info("get stock-{} daily data from {} to {} ".format(ts_code,
+                                                                                   self.start_date,
+                                                                                   self.end_date))
+                break
             except:
                 self.mylogger.error(traceback.format_exc())
                 time.sleep(20)
                 retry = retry - 1
+                self.mylogger.info("fail to get stock-{} daily data from {} to {} ".format(ts_code,
+                                                                                   self.start_date,
+                                                                                   self.end_date))
 
 
 def arg_parser():
