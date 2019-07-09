@@ -72,11 +72,11 @@ class StockBasicJob:
                         self.mylogger.error(traceback.format_exc())
                 else:
                     job_func(row['ts_code'], row['name'])
-                    self.mylogger.info("finish stock-{}:{} ".format(self.job_type, stock_name))
+                    self.mylogger.info("finish stock-{}:{} ".format(self.job_type, row['name']))
         except:
             self.mylogger.error(traceback.format_exc())
         finally:
-            self.mylogger.info("----exit " + self.job_type)
+            self.mylogger.info("----exit {}" + self.job_type)
 
     def get_stock_forecast(self, ts_code, name, queue=None):
         while True:
