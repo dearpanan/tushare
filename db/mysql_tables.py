@@ -69,6 +69,7 @@ class StockMoneyFlow(STOCK_BASE):
 class StockForecast(STOCK_BASE):
     __tablename__ = 'stock_forecast'
     ts_code = Column(VARCHAR(64), primary_key=True)
+    name = Column(VARCHAR(64))
     ann_date = Column(DATE, index=True)     # 公告日期
     end_date = Column(DATE, primary_key=True)     # 报告期
     type = Column(VARCHAR(64))  # 业绩预告类型(预增 | 预减 | 扭亏 | 首亏 | 续亏 | 续盈 | 略增 | 略减)
@@ -85,6 +86,7 @@ class StockForecast(STOCK_BASE):
 class StockExpress(STOCK_BASE):
     __tablename__ = 'stock_express'
     ts_code = Column(VARCHAR(64), primary_key=True)
+    name = Column(VARCHAR(64))
     ann_date = Column(DATE, index=True)     # 公告日期
     end_date = Column(DATE, primary_key=True)     # 报告期
     revenue = Column(FLOAT(), default=0.0)  # 营业收入(元)

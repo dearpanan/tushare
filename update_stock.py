@@ -6,7 +6,7 @@ import math
 import multiprocessing
 import argparse
 from tushare_api.tushare_process import ts_pro
-from db.mysql_tables import StockFinacial, StockDaily, STOCK_BASE
+from db.mysql_tables import StockFinacial, StockDaily, StockForecast, STOCK_BASE
 from comm.utils import ProjectUtil
 from db.mysql_alchemy import MySession
 
@@ -39,13 +39,19 @@ class StockBasicJob:
                 exit(1)
             STOCK_BASE.metadata.create_all(self.engine)
 
+            job_func = None
+            if self.job_type == 'data':
+                job_func = self.get_stock_data
+            elif self.job_type == 'forecast':
+                job_func = self.get_stock_forecast
+
             num_compress_process = 0
             queue = multiprocessing.Queue()
             data = ts_pro.stock_basic(exchange_id='', list_status='L', exchange=self.exchange)
             for idx, row in data.iterrows():
                 if self.process_num > 1:
                     try:
-                        job = multiprocessing.Process(target=self.get_stock_basic_info,
+                        job = multiprocessing.Process(target=job_func,
                                                       args=(row['ts_code'],
                                                             row['name'],
                                                             queue))
@@ -62,7 +68,7 @@ class StockBasicJob:
                     except:
                         self.mylogger.error(traceback.format_exc())
                 else:
-                    self.get_stock_basic_info(row['ts_code'], row['name'])
+                    job_func(row['ts_code'], row['name'])
 
 
         except:
@@ -70,7 +76,34 @@ class StockBasicJob:
         finally:
             self.mylogger.info("----exit " + self.name)
 
-    def get_stock_basic_info(self, ts_code, name, queue=None):
+    def get_stock_forecast(self, ts_code, name, queue=None):
+        while True:
+            try:
+                sess, _ = MySession.get_wild_session(self.stock_db)
+                if not sess:
+                    raise Exception
+                dt_stock_forecast = StockForecast()
+                res = ts_pro.forecast(ts_code=ts_code)
+                for idx1, row1 in res.iterrows():
+                    dt_stock_forecast.name = name
+                    for field in row1.keys():
+                        if hasattr(dt_stock_forecast, field):
+                            value = row1[field]
+                            if isinstance(value, float) and math.isnan(value):
+                                value = None
+                            setattr(dt_stock_forecast, field, value)
+                    sess.merge(dt_stock_forecast)
+                    sess.commit()
+                if queue:
+                    queue.put((ts_code + ":" + name, 0))
+                break
+            except:
+                if queue:
+                    queue.put((ts_code + ":" + name, -1))
+                self.mylogger.error(traceback.format_exc())
+                time.sleep(20)
+
+    def get_stock_data(self, ts_code, name, queue=None):
         while True:
             try:
                 sess, _ = MySession.get_wild_session(self.stock_db)
@@ -129,13 +162,13 @@ class StockBasicJob:
 
 def arg_parser():
     try:
-        parser = argparse.ArgumentParser('./update_stock_basic.py -h')
+        parser = argparse.ArgumentParser('./update_stock.py -h')
         parser.add_argument('-p', '--process', action='store', dest='process', type=int,
                             default=1, help='num of multi process')
         parser.add_argument('-e', '--exchange', action='store', dest='exchange', type=str,
                             default='SSE', help='market: SSE/SZSE')
         parser.add_argument('-t', '--type', action='store', dest='type', type=str,
-                            default='good', help='task type')
+                            default='data', help='task type: data/forecast/express')
         parser.add_argument('--sd', action='store', dest='start_d', type=str,
                             default='', help='start date')
         parser.add_argument('--ed', action='store', dest='end_d', type=str,
