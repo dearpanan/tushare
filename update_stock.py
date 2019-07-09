@@ -12,7 +12,7 @@ from db.mysql_alchemy import MySession
 
 
 class StockBasicJob:
-    name = 'stock_basic_job'
+    name = 'stock_job'
     stock_db = 'stock'
 
     def __init__(self, mylogger, process_num, exchange, job_type, start_date, end_date):
@@ -62,19 +62,18 @@ class StockBasicJob:
                             num_compress_process -= 1
                             if status < 0:
                                 self.mylogger.error("==exceptions occurs "
-                                                    "when get info of stock:{} ".format(stock_name))
+                                                    "when get info of {}:{} ".format(self.job_type,
+                                                                                     stock_name))
                             elif status == 0:
                                 self.mylogger.info("finish stock-{}:{} ".format(self.job_type, stock_name))
                     except:
                         self.mylogger.error(traceback.format_exc())
                 else:
                     job_func(row['ts_code'], row['name'])
-
-
         except:
             self.mylogger.error(traceback.format_exc())
         finally:
-            self.mylogger.info("----exit " + self.name)
+            self.mylogger.info("----exit " + self.job_type)
 
     def get_stock_forecast(self, ts_code, name, queue=None):
         while True:
