@@ -64,7 +64,7 @@ class StockBasicJob:
                                 self.mylogger.error("==exceptions occurs "
                                                     "when get info of stock:{} ".format(stock_name))
                             elif status == 0:
-                                self.mylogger.info("finish stock:{} ".format(stock_name))
+                                self.mylogger.info("finish stock-{}:{} ".format(self.job_type, stock_name))
                     except:
                         self.mylogger.error(traceback.format_exc())
                 else:
