@@ -14,7 +14,7 @@ DEFAULT_CONFIG_FILE = './db.ini'
 
 class MySession(object):
     my_db = None
-    mylogger = ProjectUtil.get_project_logger()
+    mylogger = ProjectUtil.get_project_logger('stock_db')
     db_engine_str = dict()
     db_session = dict()
     db_engine = dict()
