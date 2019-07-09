@@ -44,6 +44,8 @@ class StockBasicJob:
                 job_func = self.get_stock_data
             elif self.job_type == 'forecast':
                 job_func = self.get_stock_forecast
+            else:
+                raise Exception("wrong job type:{}!".format(job_func))
 
             num_compress_process = 0
             queue = multiprocessing.Queue()
@@ -70,6 +72,7 @@ class StockBasicJob:
                         self.mylogger.error(traceback.format_exc())
                 else:
                     job_func(row['ts_code'], row['name'])
+                    self.mylogger.info("finish stock-{}:{} ".format(self.job_type, stock_name))
         except:
             self.mylogger.error(traceback.format_exc())
         finally:
