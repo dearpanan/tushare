@@ -55,6 +55,7 @@ class StockBasicJob:
                     break
                 except Exception as e:
                     self.mylogger.error(e)
+                    time.sleep(20)
 
             num_compress_process = 0
             queue = multiprocessing.Queue()
