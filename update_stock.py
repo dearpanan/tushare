@@ -6,7 +6,7 @@ import math
 import multiprocessing
 import argparse
 from tushare_api.tushare_process import ts_pro
-from db.mysql_tables import StockFinacial, StockDaily, StockForecast, STOCK_BASE
+from db.mysql_tables import StockFinacial, StockDaily, StockForecast, StockExpress, STOCK_BASE
 from comm.utils import ProjectUtil
 from db.mysql_alchemy import MySession
 
@@ -44,6 +44,8 @@ class StockBasicJob:
                 job_func = self.get_stock_data
             elif self.job_type == 'forecast':
                 job_func = self.get_stock_forecast
+            elif self.job_type == 'express':
+                job_func = self.get_stock_express
             else:
                 raise Exception("wrong job type:{}!".format(job_func))
 
@@ -100,6 +102,33 @@ class StockBasicJob:
                                 value = None
                             setattr(dt_stock_forecast, field, value)
                     sess.merge(dt_stock_forecast)
+                    sess.commit()
+                if queue:
+                    queue.put((ts_code + ":" + name, 0))
+                break
+            except:
+                if queue:
+                    queue.put((ts_code + ":" + name, -1))
+                self.mylogger.error(traceback.format_exc())
+                time.sleep(20)
+
+    def get_stock_express(self, ts_code, name, queue=None):
+        while True:
+            try:
+                sess, _ = MySession.get_wild_session(self.stock_db)
+                if not sess:
+                    raise Exception
+                dt_stock_express = StockExpress()
+                res = ts_pro.express(ts_code=ts_code, start_date=self.start_date, end_date=self.end_date)
+                for idx1, row1 in res.iterrows():
+                    dt_stock_express.name = name
+                    for field in row1.keys():
+                        if hasattr(dt_stock_express, field):
+                            value = row1[field]
+                            if isinstance(value, float) and math.isnan(value):
+                                value = None
+                            setattr(dt_stock_express, field, value)
+                    sess.merge(dt_stock_express)
                     sess.commit()
                 if queue:
                     queue.put((ts_code + ":" + name, 0))
