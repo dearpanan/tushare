@@ -32,7 +32,7 @@ class StockBasicJob:
 
     def start(self):
         try:
-            self.mylogger.info("----start " + self.name)
+            self.mylogger.info("----start " + self.job_type)
             self.session, self.engine = MySession.get_wild_session(self.stock_db)
             if not self.session or not self.engine:
                 self.mylogger.error("fail to connect to the databases! exit program!")
@@ -49,9 +49,15 @@ class StockBasicJob:
             else:
                 raise Exception("wrong job type:{}!".format(job_func))
 
+            while True:
+                try:
+                    data = ts_pro.stock_basic(exchange_id='', list_status='L', exchange=self.exchange)
+                    break
+                except Exception as e:
+                    self.mylogger.error(e)
+
             num_compress_process = 0
             queue = multiprocessing.Queue()
-            data = ts_pro.stock_basic(exchange_id='', list_status='L', exchange=self.exchange)
             for idx, row in data.iterrows():
                 if self.process_num > 1:
                     try:
@@ -73,15 +79,15 @@ class StockBasicJob:
                                 self.mylogger.info("finish stock-{}:{} ".format(self.job_type,
                                                                                 row['ts_code'],
                                                                                 stock_name))
-                    except:
-                        self.mylogger.error(traceback.format_exc())
+                    except Exception as e:
+                        self.mylogger.error(e)
                 else:
                     job_func(row['ts_code'], row['name'])
                     self.mylogger.info("finish stock-{}:{}-{} ".format(self.job_type,
                                                                        row['ts_code'],
                                                                        row['name']))
-        except:
-            self.mylogger.error(traceback.format_exc())
+        except Exception as e:
+            self.mylogger.error(e)
         finally:
             self.mylogger.info("----exit {}".format(self.job_type))
 
@@ -106,10 +112,10 @@ class StockBasicJob:
                 if queue:
                     queue.put((ts_code + ":" + name, 0))
                 break
-            except:
+            except Exception as e:
                 if queue:
                     queue.put((ts_code + ":" + name, -1))
-                self.mylogger.error(traceback.format_exc())
+                self.mylogger.error(e)
                 time.sleep(20)
 
     def get_stock_express(self, ts_code, name, queue=None):
@@ -133,10 +139,10 @@ class StockBasicJob:
                 if queue:
                     queue.put((ts_code + ":" + name, 0))
                 break
-            except:
+            except Exception as e:
                 if queue:
                     queue.put((ts_code + ":" + name, -1))
-                self.mylogger.error(traceback.format_exc())
+                self.mylogger.error(e)
                 time.sleep(20)
 
     def get_stock_data(self, ts_code, name, queue=None):
@@ -162,10 +168,10 @@ class StockBasicJob:
                 if queue:
                     queue.put((ts_code + ":" + name, 0))
                 break
-            except:
+            except Exception as e:
                 if queue:
                     queue.put((ts_code + ":" + name, -1))
-                self.mylogger.error(traceback.format_exc())
+                self.mylogger.error(e)
                 time.sleep(20)
 
     def get_stock_daily_data(self, sess, ts_code):
@@ -187,8 +193,8 @@ class StockBasicJob:
                                                                                    self.start_date,
                                                                                    self.end_date))
                 break
-            except:
-                self.mylogger.error(traceback.format_exc())
+            except Exception as e:
+                self.mylogger.error(e)
                 time.sleep(20)
                 retry = retry - 1
                 self.mylogger.info("fail to get stock-{} daily data from {} to {} ".format(ts_code,
