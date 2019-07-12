@@ -97,6 +97,8 @@ class StockBasicJob:
         except Exception as e:
             self.mylogger.error(e)
         finally:
+            if self.session:
+                MySession.close_wild_session(self.session)
             self.mylogger.info("----exit {}!".format(self.job_type))
 
     def process_job(self, job_list, ts_code, name, queue=None):
@@ -110,6 +112,9 @@ class StockBasicJob:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
+        finally:
+            if sess:
+                MySession.close_wild_session(sess)
 
     def get_stock_daily(self, sess, ts_code, name, queue=None):
         try:
@@ -131,24 +136,22 @@ class StockBasicJob:
             if queue:
                 queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} daily from {} to {} ".format(ts_code,
-                                                                          self.start_date,
-                                                                          self.end_date))
+                                                                          sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
             self.mylogger.info("fail to get stock-{} daily from {} to {} ".format(ts_code,
-                                                                                  self.start_date,
-                                                                                  self.end_date))
+                                                                                  sd, ed))
 
     def get_stock_forecast(self, sess, ts_code, name, queue=None):
         try:
-            dt_stock_forecast = StockForecast()
             sd, ed = self.get_update_dates(sess, ts_code, StockForecast.ann_date,
                                            self.start_date, self.end_date)
             res = self.exe_until_success(ts_pro.forecast, ts_code=ts_code,
                                          start_date=sd, end_date=ed)
             for idx1, row1 in res.iterrows():
+                dt_stock_forecast = StockForecast()
                 dt_stock_forecast.name = name
                 for field in row1.keys():
                     if hasattr(dt_stock_forecast, field):
@@ -161,24 +164,22 @@ class StockBasicJob:
             if queue:
                 queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} forecast from {} to {} ".format(ts_code,
-                                                                             self.start_date,
-                                                                             self.end_date))
+                                                                             sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
             self.mylogger.info("fail to get stock-{} forecast from {} to {} ".format(ts_code,
-                                                                                     self.start_date,
-                                                                                     self.end_date))
+                                                                                     sd, ed))
 
     def get_stock_express(self, sess, ts_code, name, queue=None):
         try:
-            dt_stock_express = StockExpress()
             sd, ed = self.get_update_dates(sess, ts_code, StockExpress.ann_date,
                                            self.start_date, self.end_date)
             res = self.exe_until_success(ts_pro.express, ts_code=ts_code,
                                          start_date=sd, end_date=ed)
             for idx1, row1 in res.iterrows():
+                dt_stock_express = StockExpress()
                 dt_stock_express.name = name
                 for field in row1.keys():
                     if hasattr(dt_stock_express, field):
@@ -191,24 +192,22 @@ class StockBasicJob:
             if queue:
                 queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} fina from {} to {} ".format(ts_code,
-                                                                         self.start_date,
-                                                                         self.end_date))
+                                                                         sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
             self.mylogger.info("fail to get stock-{} fina from {} to {} ".format(ts_code,
-                                                                                 self.start_date,
-                                                                                 self.end_date))
+                                                                                 sd, ed))
 
     def get_stock_fina(self, sess, ts_code, name, queue=None):
         try:
-            dt_stock_finacial = StockFinacial()
             sd, ed = self.get_update_dates(sess, ts_code, StockFinacial.end_date,
                                            self.start_date, self.end_date)
             res = self.exe_until_success(ts_pro.fina_indicator, ts_code=ts_code,
                                          start_date=sd, end_date=ed)
             for idx1, row1 in res.iterrows():
+                dt_stock_finacial = StockFinacial()
                 dt_stock_finacial.name = name
                 for field in row1.keys():
                     if hasattr(dt_stock_finacial, field):
@@ -221,15 +220,13 @@ class StockBasicJob:
             if queue:
                 queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} fina from {} to {} ".format(ts_code,
-                                                                         self.start_date,
-                                                                         self.end_date))
+                                                                         sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
             self.mylogger.info("fail to get stock-{} fina from {} to {} ".format(ts_code,
-                                                                                 self.start_date,
-                                                                                 self.end_date))
+                                                                                 sd, ed))
 
     def exe_until_success(self, func, **params):
         while True:
@@ -242,13 +239,12 @@ class StockBasicJob:
 
     def get_update_dates(self, sess, code, field, sd, ed, bw=270):
         row = None
-        try:
-            row = sess.query(field).filter_by(
-                ts_code=code).order_by(field.desc()).first()
-        except Exception as e:
-            self.mylogger.error(e)
-
         if not sd:
+            try:
+                row = sess.query(field).filter_by(
+                    ts_code=code).order_by(field.desc()).first()
+            except Exception as e:
+                self.mylogger.error(e)
             if row:
                 sd_date = row[0] + dt.timedelta(days=1)
             else:
@@ -261,18 +257,18 @@ class StockBasicJob:
 
 def arg_parser():
     try:
-        parser = argparse.ArgumentParser('./update_stock.py -h')
-        parser.add_argument('-p', '--process', action='store', dest='process', type=int,
-                            default=1, help='num of multi process')
-        parser.add_argument('-e', '--exchange', action='store', dest='exchange', type=str,
-                            default='all', help='market: all/sh/sz')
-        parser.add_argument('-t', '--type', action='store', dest='type', type=str,
-                            default='all', help='task type: daily/fina/forecast/express/all')
-        parser.add_argument('--sd', action='store', dest='start_d', type=str,
-                            default='', help='start date')
-        parser.add_argument('--ed', action='store', dest='end_d', type=str,
-                            default='', help='end date')
-        return parser
+        myparser = argparse.ArgumentParser('./update_stock.py -h')
+        myparser.add_argument('-p', '--process', action='store', dest='process', type=int,
+                              default=1, help='num of multi process')
+        myparser.add_argument('-e', '--exchange', action='store', dest='exchange', type=str,
+                              default='all', help='market: all/sh/sz')
+        myparser.add_argument('-t', '--type', action='store', dest='type', type=str,
+                              default='all', help='task type: daily/fina/forecast/express/all')
+        myparser.add_argument('--sd', action='store', dest='start_d', type=str,
+                              default='', help='start date')
+        myparser.add_argument('--ed', action='store', dest='end_d', type=str,
+                              default='', help='end date')
+        return myparser
     except Exception as e:
         print(e)
 
