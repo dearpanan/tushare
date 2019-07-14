@@ -231,7 +231,7 @@ class StockBasicJob:
             res = self.exe_until_success(ts_pro.moneyflow, ts_code=ts_code,
                                          start_date=sd, end_date=ed)
             for idx1, row1 in res.iterrows():
-                dt_stock_moneyflow = StockFinacial()
+                dt_stock_moneyflow = StockMoneyFlow()
                 for field in row1.keys():
                     if hasattr(dt_stock_moneyflow, field):
                         value = row1[field]
