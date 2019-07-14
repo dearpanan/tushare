@@ -7,7 +7,7 @@ import argparse
 import pandas as pd
 import datetime as dt
 from tushare_api.tushare_process import ts_pro
-from db.mysql_tables import StockFinacial, StockDaily, StockForecast, StockExpress, STOCK_BASE
+from db.mysql_tables import STOCK_BASE, StockFinacial, StockDaily, StockForecast, StockExpress, StockMoneyFlow
 from comm.utils import ProjectUtil
 from db.mysql_alchemy import MySession
 
@@ -49,6 +49,8 @@ class StockBasicJob:
                 job_list.append(self.get_stock_forecast)
             if self.job_type.find('express') >= 0 or self.job_type.find('all') >= 0:
                 job_list.append(self.get_stock_express)
+            if self.job_type.find('moneyflow') >= 0 or self.job_type.find('all') >= 0:
+                job_list.append(self.get_stock_moneyflow)
             if not job_list:
                 raise Exception("wrong job type: {}!".format(self.job_type))
 
@@ -222,6 +224,31 @@ class StockBasicJob:
             self.mylogger.error("fail to get stock-{} fina from {} to {} ".format(ts_code,
                                                                                   sd, ed))
 
+    def get_stock_moneyflow(self, sess, ts_code, name, queue=None):
+        try:
+            sd, ed = self.get_update_dates(sess, ts_code, StockMoneyFlow.trade_date,
+                                           self.start_date, self.end_date)
+            res = self.exe_until_success(ts_pro.fina_indicator, ts_code=ts_code,
+                                         start_date=sd, end_date=ed)
+            for idx1, row1 in res.iterrows():
+                dt_stock_moneyflow = StockFinacial()
+                for field in row1.keys():
+                    if hasattr(dt_stock_moneyflow, field):
+                        value = row1[field]
+                        if isinstance(value, float) and math.isnan(value):
+                            value = None
+                        setattr(dt_stock_moneyflow, field, value)
+                sess.merge(dt_stock_moneyflow)
+                sess.commit()
+            self.mylogger.info("get stock-{} moneyflow from {} to {} ".format(ts_code,
+                                                                              sd, ed))
+        except Exception as e:
+            if queue:
+                queue.put((ts_code + ":" + name, -1))
+            self.mylogger.error(e)
+            self.mylogger.error("fail to get stock-{} moneyflow from {} to {} ".format(ts_code,
+                                                                                       sd, ed))
+
     def exe_until_success(self, func, **params):
         while True:
             try:
@@ -257,7 +284,7 @@ def arg_parser():
         myparser.add_argument('-e', '--exchange', action='store', dest='exchange', type=str,
                               default='all', help='market: all/sh/sz')
         myparser.add_argument('-t', '--type', action='store', dest='type', type=str,
-                              default='all', help='task type: daily/fina/forecast/express/all')
+                              default='all', help='task type: daily/fina/forecast/express/moneyflow/all')
         myparser.add_argument('--sd', action='store', dest='start_d', type=str,
                               default='', help='start date')
         myparser.add_argument('--ed', action='store', dest='end_d', type=str,
