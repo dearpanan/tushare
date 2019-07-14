@@ -108,6 +108,8 @@ class StockBasicJob:
                 raise Exception("获取数据库连接失败！")
             for myjob in job_list:
                 myjob(sess, ts_code, name, queue)
+            if queue:
+                queue.put((ts_code + ":" + name, 0))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
@@ -133,16 +135,14 @@ class StockBasicJob:
                         setattr(dt_daily, field, value)
                 sess.merge(dt_daily)
                 sess.commit()
-            if queue:
-                queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} daily from {} to {} ".format(ts_code,
                                                                           sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.info("fail to get stock-{} daily from {} to {} ".format(ts_code,
-                                                                                  sd, ed))
+            self.mylogger.error("fail to get stock-{} daily from {} to {} ".format(ts_code,
+                                                                                   sd, ed))
 
     def get_stock_forecast(self, sess, ts_code, name, queue=None):
         try:
@@ -161,16 +161,14 @@ class StockBasicJob:
                         setattr(dt_stock_forecast, field, value)
                 sess.merge(dt_stock_forecast)
                 sess.commit()
-            if queue:
-                queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} forecast from {} to {} ".format(ts_code,
                                                                              sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.info("fail to get stock-{} forecast from {} to {} ".format(ts_code,
-                                                                                     sd, ed))
+            self.mylogger.error("fail to get stock-{} forecast from {} to {} ".format(ts_code,
+                                                                                      sd, ed))
 
     def get_stock_express(self, sess, ts_code, name, queue=None):
         try:
@@ -189,16 +187,14 @@ class StockBasicJob:
                         setattr(dt_stock_express, field, value)
                 sess.merge(dt_stock_express)
                 sess.commit()
-            if queue:
-                queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} fina from {} to {} ".format(ts_code,
                                                                          sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.info("fail to get stock-{} fina from {} to {} ".format(ts_code,
-                                                                                 sd, ed))
+            self.mylogger.error("fail to get stock-{} fina from {} to {} ".format(ts_code,
+                                                                                  sd, ed))
 
     def get_stock_fina(self, sess, ts_code, name, queue=None):
         try:
@@ -217,16 +213,14 @@ class StockBasicJob:
                         setattr(dt_stock_finacial, field, value)
                 sess.merge(dt_stock_finacial)
                 sess.commit()
-            if queue:
-                queue.put((ts_code + ":" + name, 0))
             self.mylogger.info("get stock-{} fina from {} to {} ".format(ts_code,
                                                                          sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.info("fail to get stock-{} fina from {} to {} ".format(ts_code,
-                                                                                 sd, ed))
+            self.mylogger.error("fail to get stock-{} fina from {} to {} ".format(ts_code,
+                                                                                  sd, ed))
 
     def exe_until_success(self, func, **params):
         while True:
