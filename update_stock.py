@@ -228,7 +228,7 @@ class StockBasicJob:
         try:
             sd, ed = self.get_update_dates(sess, ts_code, StockMoneyFlow.trade_date,
                                            self.start_date, self.end_date)
-            res = self.exe_until_success(ts_pro.fina_indicator, ts_code=ts_code,
+            res = self.exe_until_success(ts_pro.moneyflow, ts_code=ts_code,
                                          start_date=sd, end_date=ed)
             for idx1, row1 in res.iterrows():
                 dt_stock_moneyflow = StockFinacial()
