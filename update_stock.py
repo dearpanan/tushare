@@ -81,21 +81,21 @@ class StockBasicJob:
                         job.start()
                         num_compress_process += 1
                         while num_compress_process == self.process_num:
-                            (stock_name, status) = queue.get()
+                            (stock_info, status) = queue.get()
                             num_compress_process -= 1
                             if status < 0:
                                 self.mylogger.error("==exceptions occurs "
-                                                    "when get info of {}:{}-{}!".format(self.job_type,
-                                                                                        code, stock_name))
+                                                    "when get info of job-{}:{}!".format(self.job_type,
+                                                                                         stock_info))
                             elif status == 0:
-                                self.mylogger.info("finish stock-{}:{}-{}!".format(self.job_type,
-                                                                                   code, stock_name))
+                                self.mylogger.info("finish job-{}:{}!".format(self.job_type,
+                                                                              stock_info))
                     except Exception as e:
                         self.mylogger.error(e)
                 else:
                     self.process_job(job_list, code, row['name'])
-                    self.mylogger.info("finish stock-{}:{}-{}!".format(self.job_type,
-                                                                       code, row['name']))
+                    self.mylogger.info("finish job-{}:{}-{}!".format(self.job_type,
+                                                                     code, row['name']))
         except Exception as e:
             self.mylogger.error(e)
         finally:
@@ -111,10 +111,10 @@ class StockBasicJob:
             for myjob in job_list:
                 myjob(sess, ts_code, name, queue)
             if queue:
-                queue.put((ts_code + ":" + name, 0))
+                queue.put((ts_code + "-" + name, 0))
         except Exception as e:
             if queue:
-                queue.put((ts_code + ":" + name, -1))
+                queue.put((ts_code + "-" + name, -1))
             self.mylogger.error(e)
         finally:
             if sess:
