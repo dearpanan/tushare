@@ -256,7 +256,8 @@ class StockBasicJob:
                 return data
             except Exception as e:
                 self.mylogger.error(e)
-                self.mylogger.info("wait 20s for stock-{}!".format(params['ts_code']))
+                self.mylogger.info("wait 20s : {}, stock-{}!".format(func.args[0],
+                                                                     params['ts_code']))
                 time.sleep(20)
 
     def get_update_dates(self, sess, code, field, sd, ed, bw=270):
