@@ -137,14 +137,14 @@ class StockBasicJob:
                         setattr(dt_daily, field, value)
                 sess.merge(dt_daily)
                 sess.commit()
-            self.mylogger.info("get stock-{} daily from {} to {} ".format(ts_code,
-                                                                          sd, ed))
+            self.mylogger.info("  get stock-{} daily from {} to {} ".format(ts_code,
+                                                                            sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.error("fail to get stock-{} daily from {} to {} ".format(ts_code,
-                                                                                   sd, ed))
+            self.mylogger.error("  fail to get stock-{} daily from {} to {} ".format(ts_code,
+                                                                                     sd, ed))
 
     def get_stock_forecast(self, sess, ts_code, name, queue=None):
         try:
@@ -163,14 +163,14 @@ class StockBasicJob:
                         setattr(dt_stock_forecast, field, value)
                 sess.merge(dt_stock_forecast)
                 sess.commit()
-            self.mylogger.info("get stock-{} forecast from {} to {} ".format(ts_code,
-                                                                             sd, ed))
+            self.mylogger.info("  get stock-{} forecast from {} to {} ".format(ts_code,
+                                                                               sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.error("fail to get stock-{} forecast from {} to {} ".format(ts_code,
-                                                                                      sd, ed))
+            self.mylogger.error("  fail to get stock-{} forecast from {} to {} ".format(ts_code,
+                                                                                        sd, ed))
 
     def get_stock_express(self, sess, ts_code, name, queue=None):
         try:
@@ -189,14 +189,14 @@ class StockBasicJob:
                         setattr(dt_stock_express, field, value)
                 sess.merge(dt_stock_express)
                 sess.commit()
-            self.mylogger.info("get stock-{} express from {} to {} ".format(ts_code,
-                                                                            sd, ed))
+            self.mylogger.info("  get stock-{} express from {} to {} ".format(ts_code,
+                                                                              sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.error("fail to get stock-{} express from {} to {} ".format(ts_code,
-                                                                                     sd, ed))
+            self.mylogger.error("  fail to get stock-{} express from {} to {} ".format(ts_code,
+                                                                                       sd, ed))
 
     def get_stock_fina(self, sess, ts_code, name, queue=None):
         try:
@@ -215,14 +215,14 @@ class StockBasicJob:
                         setattr(dt_stock_finacial, field, value)
                 sess.merge(dt_stock_finacial)
                 sess.commit()
-            self.mylogger.info("get stock-{} fina from {} to {} ".format(ts_code,
-                                                                         sd, ed))
+            self.mylogger.info("  get stock-{} fina from {} to {} ".format(ts_code,
+                                                                           sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.error("fail to get stock-{} fina from {} to {} ".format(ts_code,
-                                                                                  sd, ed))
+            self.mylogger.error("  fail to get stock-{} fina from {} to {} ".format(ts_code,
+                                                                                    sd, ed))
 
     def get_stock_moneyflow(self, sess, ts_code, name, queue=None):
         try:
@@ -240,14 +240,14 @@ class StockBasicJob:
                         setattr(dt_stock_moneyflow, field, value)
                 sess.merge(dt_stock_moneyflow)
                 sess.commit()
-            self.mylogger.info("get stock-{} moneyflow from {} to {} ".format(ts_code,
-                                                                              sd, ed))
+            self.mylogger.info("  get stock-{} moneyflow from {} to {} ".format(ts_code,
+                                                                                sd, ed))
         except Exception as e:
             if queue:
                 queue.put((ts_code + ":" + name, -1))
             self.mylogger.error(e)
-            self.mylogger.error("fail to get stock-{} moneyflow from {} to {} ".format(ts_code,
-                                                                                       sd, ed))
+            self.mylogger.error("  fail to get stock-{} moneyflow from {} to {} ".format(ts_code,
+                                                                                         sd, ed))
 
     def exe_until_success(self, func, **params):
         while True:
@@ -256,8 +256,8 @@ class StockBasicJob:
                 return data
             except Exception as e:
                 self.mylogger.error(e)
-                self.mylogger.info("wait 20s : {}, stock-{}!".format(func.args[0],
-                                                                     params['ts_code']))
+                self.mylogger.info("  wait 20s : {}, stock-{}!".format(func.args[0],
+                                                                       params['ts_code']))
                 time.sleep(20)
 
     def get_update_dates(self, sess, code, field, sd, ed, bw=270):
